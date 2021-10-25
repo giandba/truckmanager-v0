@@ -1,0 +1,2 @@
+<add name="DefaultConnection" connectionString="Data Source=(LocalDB)\MSSQLLocalDB;Initial Catalog=IdentityManagerDB;Integrated Security=True"
+providerName="System.Data.SqlClient" />

@@ -1,0 +1,370 @@
+<template>
+  <div>
+    <h3 class="text-3xl font-medium text-gray-700">Cadastro de Caminhões [{{actionPage}} - {{truckListFiltered.length}}]</h3>
+
+    <div v-if="actionPageShowAlertOk" class="inline-flex w-full max-w-sm ml-3 overflow-hidden bg-white rounded-lg shadow-md float-right">
+        <div class="flex items-center justify-center w-12 bg-green-500">
+            <svg class="w-6 h-6 text-white fill-current" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+                <path
+                d="M20 3.33331C10.8 3.33331 3.33337 10.8 3.33337 20C3.33337 29.2 10.8 36.6666 20 36.6666C29.2 36.6666 36.6667 29.2 36.6667 20C36.6667 10.8 29.2 3.33331 20 3.33331ZM16.6667 28.3333L8.33337 20L10.6834 17.65L16.6667 23.6166L29.3167 10.9666L31.6667 13.3333L16.6667 28.3333Z"
+                />
+            </svg>
+        </div>
+
+        <div class="px-4 py-2 -mx-3">
+            <div class="mx-3">
+                <span class="font-semibold text-green-500">OK</span>
+                <p class="text-sm text-gray-600">{{actionPageAlertMessage}}</p>
+            </div>
+        </div>
+    </div>
+
+    <br />
+
+    <div v-if="actionPage=='list'">
+        <div class="relative mx-4 lg:mx-0">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3" @click="load()">
+            <svg class="w-5 h-5 text-gray-500" viewBox="0 0 24 24" fill="none">
+                <path
+                d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                />
+            </svg>
+            </span>
+
+            <input v-model="listSearchText" style="width:50%"
+            class="w-100 pl-10 pr-4 text-indigo-600 border-gray-200 rounded-md focus:border-indigo-600 focus:ring focus:ring-opacity-40 focus:ring-indigo-500"
+            type="text"
+            placeholder="Pesquisar"
+            />
+        </div>
+        <div class="flex justify-end mx-4">
+            <button @click="itemAddOpen()" class="px-4 py-2 text-gray-200 bg-gray-800 rounded-md hover:bg-gray-700 focus:outline-none focus:bg-gray-700">
+                Novo
+            </button>
+        </div>
+
+        <div class="mt-8">
+        <div class="flex flex-col mt-6">
+            <div class="py-2 -my-2 overflow-x-auto sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
+            <div class="inline-block min-w-full overflow-hidden align-middle border-b border-gray-200 shadow sm:rounded-lg">
+                <table class="min-w-full">
+                <thead>
+                    <tr>
+                    <th class="px-6 py-3 text-xs font-medium leading-4 tracking-wider text-left text-gray-500 uppercase bg-gray-100 border-b border-gray-200">Tipo</th>
+                    <th class="px-6 py-3 text-xs font-medium leading-4 tracking-wider text-left text-gray-500 uppercase bg-gray-100 border-b border-gray-200">Descrição</th>
+                    <th class="px-6 py-3 text-xs font-medium leading-4 tracking-wider text-left text-gray-500 uppercase bg-gray-100 border-b border-gray-200">Ano Fabricação</th>
+                    <th class="px-6 py-3 text-xs font-medium leading-4 tracking-wider text-left text-gray-500 uppercase bg-gray-100 border-b border-gray-200">Ano Modelo</th>
+                    <th class="px-6 py-3 bg-gray-100 border-b border-gray-200"></th>
+                    </tr>
+                </thead>
+
+                <tbody class="bg-white">
+                    <tr v-for="(u, id) in truckListFiltered" :key="id">
+                        <td class="px-6 py-4 border-b border-gray-200">{{ u.modelType }}</td>
+                        <td class="px-6 py-4 border-b border-gray-200">{{ u.name }}</td>
+                        <td class="px-6 py-4 border-b border-gray-200">{{ u.manufactureYear }}</td>
+                        <td class="px-6 py-4 border-b border-gray-200">{{ u.modelYear }}</td>
+
+                        <td class="px-6 py-4 text-sm font-medium leading-5 text-right border-b border-gray-200 whitespace-nowrap">
+                            <button class="px-3 py-1 text-sm text-white bg-indigo-600 rounded-md hover:bg-gray-300 focus:outline-none" @click="itemEditOpen(u)">Editar</button>
+                            <button class="px-3 py-1 text-sm text-black bg-red-400 rounded-md hover:bg-indigo-500 focus:outline-none" @click="itemDelete(u.id)">Excluir</button>
+                        </td>
+                    </tr>
+                </tbody>
+                </table>
+            </div>
+            </div>
+        </div>
+        </div>
+    </div>
+    <div v-if="actionPage=='add'">
+        <div class="mt-8">
+            <div class="mt-4">
+                <div class="p-6 bg-white rounded-md shadow-md">
+                    <h2 class="text-lg font-semibold text-gray-700 capitalize">
+                        Novo caminhão
+                    </h2>
+                    <div class="flex justify-end mt-4">
+                        <button @click="actionPage='list'" class="px-4 py-2 text-gray-200 bg-gray-800 rounded-md hover:bg-gray-700 focus:outline-none focus:bg-gray-700">
+                            Cancelar
+                        </button>
+                    </div>
+
+                    <form>
+                        <div class="grid grid-cols-1 gap-6 mt-4 sm:grid-cols-2">
+                            <div>
+                                <label class="text-gray-700" for="username">Descrição</label>
+                                <input
+                                class="w-full mt-2 border-gray-200 rounded-md focus:border-indigo-600 focus:ring focus:ring-opacity-40 focus:ring-indigo-500"
+                                type="text"
+                                v-model="truckAdd.name"
+                                />
+                            </div>
+
+                            <div>
+                                <label class="text-gray-700" for="emailAddress">Tipo</label>
+                                <select
+                                class="w-full mt-2 border-gray-200 rounded-md focus:border-indigo-600 focus:ring focus:ring-opacity-40 focus:ring-indigo-500"
+                                v-model="truckAdd.modelType">
+                                    <option value="0">Selectione</option>
+                                    <option value="1">FH</option>
+                                    <option value="2">FM</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-gray-700" for="username">Ano Fabricação</label>
+                                <input
+                                class="w-full mt-2 border-gray-200 rounded-md focus:border-indigo-600 focus:ring focus:ring-opacity-40 focus:ring-indigo-500"
+                                type="number"
+                                v-model="truckAdd.manufactureYear"
+                                />
+                            </div>
+                            <div>
+                                <label class="text-gray-700" for="username">Ano Modelo</label>
+                                <input
+                                class="w-full mt-2 border-gray-200 rounded-md focus:border-indigo-600 focus:ring focus:ring-opacity-40 focus:ring-indigo-500"
+                                type="number"
+                                v-model="truckAdd.modelYear"
+                                />
+                            </div>
+                        </div>
+
+                        <div class="flex justify-end mt-4">
+                            <button @click="itemAddSave()" class="px-4 py-2 text-gray-200 bg-gray-800 rounded-md hover:bg-gray-700 focus:outline-none focus:bg-gray-700">
+                                Salvar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div> 
+    </div>
+    <div v-if="actionPage=='edit'">
+        <div class="mt-8">
+            <div class="mt-4">
+                <div class="p-6 bg-white rounded-md shadow-md">
+                <h2 class="text-lg font-semibold text-gray-700 capitalize">
+                    Alterar caminhão
+                </h2>
+                <div class="flex justify-end mt-4">
+                    <button @click="actionPage='list'" class="px-4 py-2 text-gray-200 bg-gray-800 rounded-md hover:bg-gray-700 focus:outline-none focus:bg-gray-700">
+                        Cancelar
+                    </button>
+                </div>
+
+                <form>
+                    <div class="grid grid-cols-1 gap-6 mt-4 sm:grid-cols-2">
+                        <div>
+                            <label class="text-gray-700" for="username">Descrição</label>
+                            <input
+                            class="w-full mt-2 border-gray-200 rounded-md focus:border-indigo-600 focus:ring focus:ring-opacity-40 focus:ring-indigo-500"
+                            type="text"
+                            v-model="truckEdit.name"
+                            />
+                        </div>
+
+                        <div>
+                            <label class="text-gray-700" for="emailAddress">Tipo</label>
+                            <select
+                            class="w-full mt-2 border-gray-200 rounded-md focus:border-indigo-600 focus:ring focus:ring-opacity-40 focus:ring-indigo-500"
+                            v-model="truckEdit.modelType">
+                                <option value="0">Selectione</option>
+                                <option value="1">FH</option>
+                                <option value="2">FM</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-gray-700" for="username">Ano Fabricação</label>
+                            <input
+                            class="w-full mt-2 border-gray-200 rounded-md focus:border-indigo-600 focus:ring focus:ring-opacity-40 focus:ring-indigo-500"
+                            type="number"
+                            v-model="truckEdit.manufactureYear"
+                            />
+                        </div>
+                        <div>
+                            <label class="text-gray-700" for="username">Ano Modelo</label>
+                            <input
+                            class="w-full mt-2 border-gray-200 rounded-md focus:border-indigo-600 focus:ring focus:ring-opacity-40 focus:ring-indigo-500"
+                            type="number"
+                            v-model="truckEdit.modelYear"
+                            />
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end mt-4">
+                        <button @click="itemEditSave()" class="px-4 py-2 text-gray-200 bg-gray-800 rounded-md hover:bg-gray-700 focus:outline-none focus:bg-gray-700">
+                            Salvar
+                        </button>
+                    </div>
+                </form>
+                </div>
+            </div>
+        </div>
+    </div>
+  </div>
+</template>
+
+<script lang="ts">
+
+/*
+Icons: https://icons.getbootstrap.com/icons/truck/
+*/
+import { defineComponent } from "vue";
+
+import { useTableData } from "../hooks/useTableData";
+
+import axios from 'axios';
+
+export class TruckObject {
+    id:number= 0;
+    name:string="";
+    modelType:number=0;
+    manufactureYear:number= (new Date()).getFullYear();
+    modelYear:number= (new Date()).getFullYear();
+}
+
+export default defineComponent({
+  setup() {
+    const {
+      wideTableData,
+    } = useTableData();
+    const truckManagerUrl = "https://localhost:44368/api/truck/";
+
+    return {
+      wideTableData,
+      truckManagerUrl
+    };
+  },
+  data(){
+    let truckList:TruckObject[];
+    let truckListFiltered:TruckObject[];
+    let truckAdd:TruckObject;
+    let truckEdit:TruckObject;
+    
+    return {
+        listSearchText: "",
+        actionPageAlertMessage: "",
+        actionPageShowAlertError: false,
+        actionPageShowAlertOk: false,
+        actionPage: "list",
+        truckList,
+        truckListFiltered,
+        truckAdd,
+        truckEdit
+    };
+  },
+  methods:{
+      resetPage(){
+          this.actionPageAlertMessage = "";
+          this.actionPage = "list";
+      },
+      load(){
+        this.resetPage();
+        this.list();
+      },
+      showAlertHide(){
+        this.actionPageAlertMessage= "text";
+        this.actionPageShowAlertError= false;
+        this.actionPageShowAlertOk= false;
+      },
+      showAlertOk(text:string){
+        this.actionPageAlertMessage= text;
+        this.actionPageShowAlertError= false;
+        this.actionPageShowAlertOk= true;
+        window.setTimeout(() =>{
+            this.showAlertHide();
+        },3000);
+      },
+      showAlertError(text:string){
+        this.actionPageAlertMessage= text;
+        this.actionPageShowAlertError= true;
+        this.actionPageShowAlertOk= false;
+        window.setTimeout(() =>{
+            this.showAlertHide();
+        },3000);
+      },
+      list(){
+          this.actionPage = "list";
+
+            axios.get(this.truckManagerUrl)
+            .then((responseAxios) => {
+                var response = responseAxios.data;
+                if(!response.status){
+                    this.showAlertError("Erro ao consultar dados");
+                    return;
+                }
+                
+                this.truckList = response.data;
+                //Filtro
+                if(this.listSearchText.length>0){
+                    this.truckListFiltered = this.truckList.filter((item)=>{
+                        console.log(item.name, item.name.indexOf(this.listSearchText));
+                    return item.name.indexOf(this.listSearchText)>=0;
+                    });
+                }else{
+                    this.truckListFiltered = this.truckList;
+                }
+                
+          this.actionPage = "list";
+            });
+      },
+      itemAddOpen(){
+        this.actionPage = "add";
+        this.truckAdd= {
+            id: 0,
+            name:"",
+            modelType:0,
+            manufactureYear: (new Date()).getFullYear(),
+            modelYear: (new Date()).getFullYear()
+        };
+
+      },
+      itemAddSave(){
+        axios.post(this.truckManagerUrl, this.truckAdd)
+        .then((responseAxios) => {
+            this.showAlertOk("Caminhão criado com sucesso");            
+            this.load();
+        });
+      },
+      itemEditOpen(truckItem:TruckObject){
+        this.actionPage = "edit";
+        //Implementar o GET por ID
+        axios.get(this.truckManagerUrl + truckItem.id)
+        .then((responseAxios:any) => {
+            var response = responseAxios.data;
+            if(!response.status){
+                this.showAlertError("Erro ao consultar dados");
+                return;
+            }
+            
+            this.truckEdit = new TruckObject();            
+            this.truckEdit.id = response.data.id;
+            this.truckEdit.name = response.data.name;
+            this.truckEdit.modelType = response.data.modelType;
+            this.truckEdit.manufactureYear = response.data.manufactureYear;
+            this.truckEdit.modelYear = response.data.modelYear;
+
+            console.log(this.truckEdit);
+        });
+      },
+      itemEditSave(){
+        axios.put(this.truckManagerUrl, this.truckEdit)
+        .then((responseAxios) => {
+            this.showAlertOk("Caminhão alterado com sucesso");
+            this.load();
+        });
+      },
+      itemDelete(truckid:number){
+        axios.delete(this.truckManagerUrl + truckid)
+        .then((responseAxios) => {
+            this.showAlertOk("Caminhão excluído com sucesso");
+            this.load();
+        });
+      },
+    }
+});
+</script>
